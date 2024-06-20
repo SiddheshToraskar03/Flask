@@ -1,7 +1,6 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
-import os
 
 app = Flask(__name__)
 # Make sure to set your database URI here
@@ -15,17 +14,26 @@ class Todo(db.Model):
     dse = db.Column(db.Integer, nullable=False)
     date_created = db.Column(db.DateTime, default=datetime.utcnow)
 
-    def __repr__(self) -> str:
+    def __repr__(self):
         return f"{self.srno} - {self.title}"
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def hello_world():
-    return render_template('index.html')
-    #return 'Hello, World!'
+    if request.method == 'POST':
+        title = request.form['title']
+        dse = request.form['dse']
+        todo = Todo(title=title, dse=dse)
+        db.session.add(todo)
+        db.session.commit()
+    
+    allTodo = Todo.query.all()
+    return render_template('index.html', allTodo=allTodo)
 
 @app.route('/product')
 def product():
-    return 'Hello Siddhesh This is Product'
+    allTodo = Todo.query.all()
+    print(allTodo)
+    return 'Hello Siddhesh, This is Product'
 
 if __name__ == "__main__":
     app.run(debug=True, port=7000)
